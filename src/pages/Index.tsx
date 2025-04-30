@@ -1,24 +1,58 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import TrackingDemo from "@/components/TrackingDemo";
+import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
+  const [heatmapLoaded, setHeatmapLoaded] = useState(false);
+
   useEffect(() => {
-    // Load our tracking script dynamically
-    const trackingScript = document.createElement("script");
-    trackingScript.src = "/tracking-script.js";
-    trackingScript.async = true;
-    document.head.appendChild(trackingScript);
-    
-    // Load heatmap.js library
+    // Load heatmap.js library first
     const heatmapScript = document.createElement("script");
     heatmapScript.src = "https://unpkg.com/heatmap.js@2.0.2/build/heatmap.min.js";
     heatmapScript.async = true;
     
-    // Ensure heatmap.js is loaded after tracking script to avoid dependency issues
-    trackingScript.onload = () => {
-      document.head.appendChild(heatmapScript);
+    // Wait for heatmap to load before loading our tracking script
+    heatmapScript.onload = () => {
+      console.log("Heatmap.js loaded successfully");
+      setHeatmapLoaded(true);
+      
+      // Now load our tracking script that depends on heatmap.js
+      const trackingScript = document.createElement("script");
+      trackingScript.src = "/tracking-script.js";
+      trackingScript.async = true;
+      document.head.appendChild(trackingScript);
+      
+      trackingScript.onload = () => {
+        console.log("Tracking script loaded successfully");
+      };
+      
+      trackingScript.onerror = () => {
+        console.error("Error loading tracking script");
+        toast({
+          title: "Error",
+          description: "Failed to load tracking script",
+          variant: "destructive"
+        });
+      };
     };
+    
+    heatmapScript.onerror = () => {
+      console.error("Error loading heatmap.js");
+      toast({
+        title: "Error",
+        description: "Failed to load heatmap.js library",
+        variant: "destructive"
+      });
+      
+      // Load tracking script anyway but without heatmap functionality
+      const trackingScript = document.createElement("script");
+      trackingScript.src = "/tracking-script.js";
+      trackingScript.async = true;
+      document.head.appendChild(trackingScript);
+    };
+    
+    document.head.appendChild(heatmapScript);
   }, []);
 
   return (
@@ -31,7 +65,7 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <TrackingDemo />
+        <TrackingDemo heatmapLoaded={heatmapLoaded} />
       </main>
 
       <footer className="bg-white border-t mt-20">
