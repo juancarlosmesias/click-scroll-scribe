@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,7 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
 
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [heatmapVisible, setHeatmapVisible] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const toggleTracking = () => {
     window.disableTracking = !window.disableTracking;
@@ -133,6 +135,43 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
     }
   };
 
+  // Check if heatmap is available after script initialization
+  useEffect(() => {
+    const checkHeatmapAvailability = () => {
+      // If we've detected script loading is complete
+      if (window.ClickScrollScribe && isInitializing) {
+        setIsInitializing(false);
+        
+        // Verify if heatmap functionality is actually available
+        if (heatmapLoaded) {
+          try {
+            // Test heatmap functions
+            if (typeof window.ClickScrollScribe.showHeatmap === 'function' && 
+                typeof window.ClickScrollScribe.hideHeatmap === 'function') {
+              console.log("Heatmap functionality verified");
+            } else {
+              console.error("Heatmap functions missing from ClickScrollScribe object");
+            }
+          } catch (error) {
+            console.error("Error verifying heatmap functionality:", error);
+          }
+        }
+      }
+    };
+    
+    // Check every second for 10 seconds
+    const intervalId = setInterval(checkHeatmapAvailability, 1000);
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+      setIsInitializing(false);
+    }, 10000);
+    
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [heatmapLoaded, isInitializing]);
+
   useEffect(() => {
     // Check tracking status on component mount
     setTrackingEnabled(!window.disableTracking);
@@ -162,19 +201,34 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
             <Button 
               variant={heatmapVisible ? "secondary" : "outline"}
               onClick={toggleHeatmap}
-              disabled={!heatmapLoaded}
-              title={!heatmapLoaded ? "Heatmap library not loaded" : ""}
+              disabled={!heatmapLoaded || isInitializing}
+              title={!heatmapLoaded ? "Heatmap library not loaded" : 
+                    isInitializing ? "Initializing tracking system..." : ""}
             >
               {heatmapVisible ? "Hide Heatmap" : "Show Heatmap"}
             </Button>
           </div>
         </div>
         
-        {!heatmapLoaded && (
+        {isInitializing ? (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-md">
+            <p className="text-sm flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Initializing tracking system, please wait...
+            </p>
+          </div>
+        ) : !heatmapLoaded ? (
           <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-md">
             <p className="text-sm flex items-center">
               <AlertCircle className="h-4 w-4 mr-2" />
               Heatmap functionality is not available - the library failed to load
+            </p>
+          </div>
+        ) : (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md">
+            <p className="text-sm flex items-center">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Heatmap functionality is ready to use
             </p>
           </div>
         )}
