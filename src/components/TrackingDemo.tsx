@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const TrackingDemo = () => {
   const [trackingData, setTrackingData] = useState<{
@@ -13,15 +14,35 @@ const TrackingDemo = () => {
   } | null>(null);
 
   const [trackingEnabled, setTrackingEnabled] = useState(true);
+  const [heatmapVisible, setHeatmapVisible] = useState(false);
 
   const toggleTracking = () => {
     window.disableTracking = !window.disableTracking;
     setTrackingEnabled(!window.disableTracking);
   };
 
+  const toggleHeatmap = () => {
+    const newVisibility = !heatmapVisible;
+    if (window.ClickScrollScribe) {
+      if (newVisibility) {
+        window.ClickScrollScribe.showHeatmap();
+      } else {
+        window.ClickScrollScribe.hideHeatmap();
+      }
+    }
+    setHeatmapVisible(newVisibility);
+  };
+
+  const clearHeatmap = () => {
+    if (window.ClickScrollScribe) {
+      window.ClickScrollScribe.clearHeatmap();
+    }
+  };
+
   const clearTrackingData = () => {
     localStorage.removeItem("trackingData");
     setTrackingData(null);
+    clearHeatmap();
   };
 
   const loadTrackingData = () => {
@@ -49,12 +70,21 @@ const TrackingDemo = () => {
       <section className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-semibold">Interactive Demo</h2>
-          <Button 
-            variant={trackingEnabled ? "destructive" : "default"}
-            onClick={toggleTracking}
-          >
-            {trackingEnabled ? "Disable Tracking" : "Enable Tracking"}
-          </Button>
+          <div className="space-x-2">
+            <Button 
+              variant={trackingEnabled ? "destructive" : "default"}
+              onClick={toggleTracking}
+            >
+              {trackingEnabled ? "Disable Tracking" : "Enable Tracking"}
+            </Button>
+            
+            <Button 
+              variant={heatmapVisible ? "secondary" : "outline"}
+              onClick={toggleHeatmap}
+            >
+              {heatmapVisible ? "Hide Heatmap" : "Show Heatmap"}
+            </Button>
+          </div>
         </div>
         
         <Card className="p-6 space-y-4">
@@ -101,19 +131,63 @@ const TrackingDemo = () => {
           </div>
         </div>
         
-        <Card className="overflow-hidden">
-          <div className="p-4 bg-gray-100 border-b">
-            <h3 className="font-medium">LocalStorage Data Preview</h3>
-          </div>
+        <Tabs defaultValue="data" className="w-full">
+          <TabsList>
+            <TabsTrigger value="data">Raw Data</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          </TabsList>
           
-          <ScrollArea className="h-[400px] p-4">
-            {trackingData ? (
-              <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(trackingData, null, 2)}</pre>
-            ) : (
-              <p className="text-gray-500 italic">No tracking data available in localStorage</p>
-            )}
-          </ScrollArea>
-        </Card>
+          <TabsContent value="data">
+            <Card className="overflow-hidden">
+              <div className="p-4 bg-gray-100 border-b">
+                <h3 className="font-medium">LocalStorage Data Preview</h3>
+              </div>
+              
+              <ScrollArea className="h-[400px] p-4">
+                {trackingData ? (
+                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(trackingData, null, 2)}</pre>
+                ) : (
+                  <p className="text-gray-500 italic">No tracking data available in localStorage</p>
+                )}
+              </ScrollArea>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="stats">
+            <Card className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium">Click Statistics</h3>
+                  <p className="text-gray-600">
+                    {trackingData?.clicks?.length || 0} click events recorded
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium">Scroll Statistics</h3>
+                  <p className="text-gray-600">
+                    Max scroll depth: {
+                      trackingData?.scrolls?.length 
+                        ? Math.max(...trackingData.scrolls.map(s => s.percentage)) + '%'
+                        : 'No data'
+                    }
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium">Time on Page</h3>
+                  <p className="text-gray-600">
+                    Total time: {
+                      trackingData?.timeOnPage?.length 
+                        ? Math.max(...trackingData.timeOnPage.map(t => t.seconds)) + ' seconds'
+                        : 'No data'
+                    }
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </section>
     </div>
   );

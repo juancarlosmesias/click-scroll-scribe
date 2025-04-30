@@ -1,9 +1,10 @@
 /**
  * Click-Scroll-Scribe: Un script para rastreo de interacciones de usuario
  * Inspirado en herramientas como Hotjar, pero sin dependencias externas
+ * Con integración de heatmap.js para visualización de clics
  * 
  * Funcionalidades implementadas:
- * 1. Rastreo de clics con debouncing
+ * 1. Rastreo de clics con debouncing y visualización heatmap
  * 2. Seguimiento de profundidad de scroll (25%, 50%, 75%, 100%)
  * 3. Medición de tiempo en página
  * 
@@ -31,8 +32,14 @@
     debounceTime: 200,          // Tiempo para debouncing de clics (ms)
     batchInterval: 5000,        // Intervalo para enviar datos agrupados (ms)
     apiEndpoint: '/api/track',  // Endpoint de API ficticia
-    scrollMilestones: [25, 50, 75, 100] // Hitos de scroll
+    scrollMilestones: [25, 50, 75, 100], // Hitos de scroll
+    heatmapContainer: 'body',   // Contenedor para el heatmap
+    heatmapRadius: 25,          // Radio de los puntos en el heatmap
+    heatmapMaxOpacity: 0.6      // Opacidad máxima del heatmap
   };
+  
+  // Referencia al heatmap
+  let heatmapInstance = null;
   
   // Variables de control
   let lastClickTime = 0;
@@ -151,7 +158,7 @@
     });
   }
   
-  // 1. RASTREO DE CLICS
+  // 1. RASTREO DE CLICS Y GENERACIÓN DE HEATMAP
   function trackClicks() {
     document.addEventListener('click', function(event) {
       // Verificar si el tracking está desactivado
@@ -187,6 +194,9 @@
       
       // Guardar en localStorage
       saveToLocalStorage();
+      
+      // Actualizar heatmap si está inicializado
+      updateHeatmap(clickData);
     }, { passive: true });
   }
   
@@ -371,9 +381,103 @@
     });
   }
   
+  // FUNCIONES PARA HEATMAP
+  function initHeatmap() {
+    // Verificar si heatmap.js está cargado
+    if (typeof h337 === 'undefined') {
+      console.warn('heatmap.js not loaded yet. Will retry in 1 second.');
+      setTimeout(initHeatmap, 1000);
+      return;
+    }
+    
+    console.log('Initializing heatmap...');
+    
+    // Obtener el contenedor para el heatmap
+    const container = document.querySelector(CONFIG.heatmapContainer);
+    
+    if (!container) {
+      console.error('Heatmap container not found:', CONFIG.heatmapContainer);
+      return;
+    }
+    
+    // Crear instancia de heatmap
+    heatmapInstance = h337.create({
+      container: container,
+      radius: CONFIG.heatmapRadius,
+      maxOpacity: CONFIG.heatmapMaxOpacity,
+      minOpacity: 0.05,
+      blur: 0.85
+    });
+    
+    // Cargar datos existentes en el heatmap
+    loadExistingClicksToHeatmap();
+    
+    // Exponer la instancia del heatmap para su uso desde la interfaz
+    if (window.ClickScrollScribe) {
+      window.ClickScrollScribe.heatmapInstance = heatmapInstance;
+    }
+    
+    console.log('Heatmap initialized successfully');
+  }
+  
+  // Cargar clics existentes en el heatmap
+  function loadExistingClicksToHeatmap() {
+    if (!heatmapInstance || !trackingData.clicks.length) {
+      return;
+    }
+    
+    // Crear puntos para el heatmap
+    const dataPoints = trackingData.clicks.map(click => ({
+      x: click.x,
+      y: click.y,
+      value: 1  // Valor de intensidad
+    }));
+    
+    // Agregar puntos al heatmap
+    heatmapInstance.addData(dataPoints);
+  }
+  
+  // Actualizar heatmap con un nuevo clic
+  function updateHeatmap(clickData) {
+    if (!heatmapInstance) {
+      return;
+    }
+    
+    // Agregar punto al heatmap
+    heatmapInstance.addData({
+      x: clickData.x,
+      y: clickData.y,
+      value: 1  // Valor de intensidad
+    });
+  }
+  
+  // Mostrar/ocultar heatmap
+  function toggleHeatmap(show) {
+    if (!heatmapInstance) {
+      return;
+    }
+    
+    const heatmapContainer = document.querySelector('canvas.heatmap-canvas');
+    if (heatmapContainer) {
+      heatmapContainer.style.display = show ? 'block' : 'none';
+    }
+  }
+  
+  // Limpiar heatmap
+  function clearHeatmap() {
+    if (!heatmapInstance) {
+      return;
+    }
+    
+    heatmapInstance.setData({
+      max: 0,
+      data: []
+    });
+  }
+  
   // Inicializar el rastreador
   function initTracker() {
-    console.log('Initializing Click-Scroll-Scribe tracking...');
+    console.log('Initializing Click-Scroll-Scribe tracking with heatmap...');
     
     // Cargar datos existentes de localStorage
     initTrackingData();
@@ -385,6 +489,13 @@
     
     // Configurar envío periódico de datos
     sendDataTimeout = setTimeout(sendDataToAPI, CONFIG.batchInterval);
+    
+    // Inicializar heatmap cuando la página esté completamente cargada
+    if (document.readyState === 'complete') {
+      initHeatmap();
+    } else {
+      window.addEventListener('load', initHeatmap);
+    }
     
     // Exponer API pública para activar/desactivar el tracking
     window.ClickScrollScribe = {
@@ -398,7 +509,14 @@
       },
       isEnabled: function() {
         return !window.disableTracking;
-      }
+      },
+      showHeatmap: function() {
+        toggleHeatmap(true);
+      },
+      hideHeatmap: function() {
+        toggleHeatmap(false);
+      },
+      clearHeatmap: clearHeatmap
     };
     
     // Verificar si hay una configuración global para desactivar el tracking

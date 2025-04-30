@@ -38,5 +38,37 @@ interface Window {
     disableTracking: () => void;
     enableTracking: () => void;
     isEnabled: () => boolean;
+    showHeatmap: () => void;
+    hideHeatmap: () => void;
+    clearHeatmap: () => void;
+    heatmapInstance?: any;
   };
+}
+
+// Declaración para heatmap.js global
+declare const h337: {
+  create: (config: HeatmapConfig) => HeatmapInstance;
+};
+
+interface HeatmapConfig {
+  container: HTMLElement;
+  radius?: number;
+  maxOpacity?: number;
+  minOpacity?: number;
+  blur?: number;
+  gradient?: Record<string, string>;
+  backgroundColor?: string;
+}
+
+interface HeatmapInstance {
+  addData: (data: HeatmapPoint | HeatmapPoint[]) => void;
+  setData: (data: { max: number; data: HeatmapPoint[] }) => void;
+  getData: () => { max: number; data: HeatmapPoint[] };
+  repaint: () => void;
+}
+
+interface HeatmapPoint {
+  x: number;
+  y: number;
+  value: number;
 }
