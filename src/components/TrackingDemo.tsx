@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -24,15 +23,28 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
   const [isInitializing, setIsInitializing] = useState(true);
 
   const toggleTracking = () => {
-    window.disableTracking = !window.disableTracking;
-    setTrackingEnabled(!window.disableTracking);
+    if (!window.ClickScrollScribe) {
+      toast({
+        title: "Error",
+        description: "Tracking script not yet initialized",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (trackingEnabled) {
+      window.ClickScrollScribe.disableTracking();
+    } else {
+      window.ClickScrollScribe.enableTracking();
+    }
+    
+    setTrackingEnabled(!trackingEnabled);
     
     toast({
-      title: window.disableTracking ? "Tracking Disabled" : "Tracking Enabled",
-      description: window.disableTracking 
+      title: trackingEnabled ? "Tracking Disabled" : "Tracking Enabled",
+      description: trackingEnabled 
         ? "User interactions are no longer being tracked" 
         : "Now tracking clicks, scrolls, and time on page",
-      variant: window.disableTracking ? "default" : "default",
     });
   };
 
@@ -188,12 +200,13 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
   return (
     <div className="space-y-8">
       <section className="space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center flex-wrap gap-2">
           <h2 className="text-2xl font-semibold">Interactive Demo</h2>
-          <div className="space-x-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant={trackingEnabled ? "destructive" : "default"}
               onClick={toggleTracking}
+              className="whitespace-nowrap"
             >
               {trackingEnabled ? "Disable Tracking" : "Enable Tracking"}
             </Button>
@@ -202,6 +215,7 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
               variant={heatmapVisible ? "secondary" : "outline"}
               onClick={toggleHeatmap}
               disabled={!heatmapLoaded || isInitializing}
+              className="whitespace-nowrap"
               title={!heatmapLoaded ? "Heatmap library not loaded" : 
                     isInitializing ? "Initializing tracking system..." : ""}
             >
