@@ -59,7 +59,9 @@ const Index = () => {
           setHeatmapAttempts((prev) => prev + 1);
           // Wait before retrying
           setTimeout(() => {
-            document.head.removeChild(heatmapScript);
+            if (document.head.contains(heatmapScript)) {
+              document.head.removeChild(heatmapScript);
+            }
             loadHeatmapScript();
           }, 1500);
         } else {
@@ -97,7 +99,9 @@ const Index = () => {
           script.src.includes("heatmap.js") ||
           script.src.includes("tracking-script.js")
         ) {
-          script.parentNode?.removeChild(script);
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
         }
       });
     };
