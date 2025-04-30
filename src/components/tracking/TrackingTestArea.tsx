@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import TrackingIframe from "./TrackingIframe";
 
 const TrackingTestArea = () => {
   return (
@@ -16,6 +17,9 @@ const TrackingTestArea = () => {
         <Button variant="outline" className="border-green-500 text-green-500">Secondary Action</Button>
         <Button variant="ghost" className="text-red-500">Tertiary Link</Button>
       </div>
+      
+      {/* Add the iframe component */}
+      <TrackingIframe />
       
       <div className="h-[500px] overflow-y-auto border rounded-md p-4 bg-gray-50">
         <h4 className="text-lg font-medium mb-3">Scroll Area (Test Scroll Tracking)</h4>

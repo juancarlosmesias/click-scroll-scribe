@@ -7,6 +7,7 @@
  * 1. Rastreo de clics con debouncing y visualización heatmap
  * 2. Seguimiento de profundidad de scroll (25%, 50%, 75%, 100%)
  * 3. Medición de tiempo en página
+ * 4. Tracking en iframes
  * 
  * Fecha: 2025-04-30
  */
@@ -381,6 +382,37 @@
     });
   }
   
+  // 4. TRACKING IN IFRAMES
+  function setupIframeTracking() {
+    // Listen for messages from iframes
+    window.addEventListener('message', function(event) {
+      // Verify the event type
+      if (event.data && event.data.type === 'iframe-click') {
+        // Process iframe click event
+        const clickData = event.data.data;
+        
+        // Verify tracking is enabled
+        if (window.disableTracking) {
+          return;
+        }
+        
+        // Add source information to identify iframe clicks in data
+        clickData.source = 'iframe';
+        
+        // Add to tracking data
+        trackingData.clicks.push(clickData);
+        
+        // Save to localStorage
+        saveToLocalStorage();
+        
+        // Update heatmap if initialized
+        updateHeatmap(clickData);
+        
+        console.log('Tracked click from iframe:', clickData);
+      }
+    });
+  }
+  
   // FUNCIONES PARA HEATMAP
   function initHeatmap() {
     // Verificar si heatmap.js está cargado
@@ -486,6 +518,7 @@
     trackClicks();
     trackScrollDepth();
     trackTimeOnPage();
+    setupIframeTracking();
     
     // Configurar envío periódico de datos
     sendDataTimeout = setTimeout(sendDataToAPI, CONFIG.batchInterval);
