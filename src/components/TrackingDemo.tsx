@@ -5,8 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
-const TrackingDemo = () => {
+interface TrackingDemoProps {
+  heatmapLoaded?: boolean;
+}
+
+const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
   const [trackingData, setTrackingData] = useState<{
     clicks: any[];
     scrolls: any[];
@@ -15,27 +21,89 @@ const TrackingDemo = () => {
 
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [heatmapVisible, setHeatmapVisible] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   const toggleTracking = () => {
     window.disableTracking = !window.disableTracking;
     setTrackingEnabled(!window.disableTracking);
+    
+    toast({
+      title: window.disableTracking ? "Tracking Disabled" : "Tracking Enabled",
+      description: window.disableTracking 
+        ? "User interactions are no longer being tracked" 
+        : "Now tracking clicks, scrolls, and time on page",
+      variant: window.disableTracking ? "default" : "default",
+    });
   };
 
   const toggleHeatmap = () => {
+    if (!window.ClickScrollScribe) {
+      toast({
+        title: "Error",
+        description: "Tracking script not yet initialized",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!heatmapLoaded) {
+      toast({
+        title: "Error",
+        description: "Heatmap library not loaded",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const newVisibility = !heatmapVisible;
-    if (window.ClickScrollScribe) {
+    try {
       if (newVisibility) {
         window.ClickScrollScribe.showHeatmap();
+        toast({
+          title: "Heatmap Visible",
+          description: "Click heatmap is now displayed",
+        });
       } else {
         window.ClickScrollScribe.hideHeatmap();
+        toast({
+          title: "Heatmap Hidden",
+          description: "Click heatmap is now hidden",
+        });
       }
+      setHeatmapVisible(newVisibility);
+    } catch (error) {
+      console.error("Error toggling heatmap:", error);
+      toast({
+        title: "Error",
+        description: "Failed to toggle heatmap visibility",
+        variant: "destructive"
+      });
     }
-    setHeatmapVisible(newVisibility);
   };
 
   const clearHeatmap = () => {
-    if (window.ClickScrollScribe) {
+    if (!window.ClickScrollScribe) {
+      toast({
+        title: "Error",
+        description: "Tracking script not yet initialized",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
       window.ClickScrollScribe.clearHeatmap();
+      toast({
+        title: "Heatmap Cleared",
+        description: "Click heatmap data has been reset",
+      });
+    } catch (error) {
+      console.error("Error clearing heatmap:", error);
+      toast({
+        title: "Error",
+        description: "Failed to clear heatmap data",
+        variant: "destructive"
+      });
     }
   };
 
@@ -43,14 +111,66 @@ const TrackingDemo = () => {
     localStorage.removeItem("trackingData");
     setTrackingData(null);
     clearHeatmap();
+    
+    toast({
+      title: "Data Cleared",
+      description: "All tracking data has been removed from local storage",
+    });
   };
 
   const loadTrackingData = () => {
     const data = localStorage.getItem("trackingData");
     if (data) {
       setTrackingData(JSON.parse(data));
+      toast({
+        title: "Data Refreshed",
+        description: "Tracking data has been updated from local storage",
+      });
+    } else {
+      toast({
+        title: "No Data",
+        description: "No tracking data found in local storage",
+        variant: "default"
+      });
     }
   };
+
+  // Check if heatmap is available after script initialization
+  useEffect(() => {
+    const checkHeatmapAvailability = () => {
+      // If we've detected script loading is complete
+      if (window.ClickScrollScribe && isInitializing) {
+        setIsInitializing(false);
+        
+        // Verify if heatmap functionality is actually available
+        if (heatmapLoaded) {
+          try {
+            // Test heatmap functions
+            if (typeof window.ClickScrollScribe.showHeatmap === 'function' && 
+                typeof window.ClickScrollScribe.hideHeatmap === 'function') {
+              console.log("Heatmap functionality verified");
+            } else {
+              console.error("Heatmap functions missing from ClickScrollScribe object");
+            }
+          } catch (error) {
+            console.error("Error verifying heatmap functionality:", error);
+          }
+        }
+      }
+    };
+    
+    // Check every second for 10 seconds
+    const intervalId = setInterval(checkHeatmapAvailability, 1000);
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+      setIsInitializing(false);
+    }, 10000);
+    
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [heatmapLoaded, isInitializing]);
 
   useEffect(() => {
     // Check tracking status on component mount
@@ -81,11 +201,37 @@ const TrackingDemo = () => {
             <Button 
               variant={heatmapVisible ? "secondary" : "outline"}
               onClick={toggleHeatmap}
+              disabled={!heatmapLoaded || isInitializing}
+              title={!heatmapLoaded ? "Heatmap library not loaded" : 
+                    isInitializing ? "Initializing tracking system..." : ""}
             >
               {heatmapVisible ? "Hide Heatmap" : "Show Heatmap"}
             </Button>
           </div>
         </div>
+        
+        {isInitializing ? (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-md">
+            <p className="text-sm flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Initializing tracking system, please wait...
+            </p>
+          </div>
+        ) : !heatmapLoaded ? (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-md">
+            <p className="text-sm flex items-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Heatmap functionality is not available - the library failed to load
+            </p>
+          </div>
+        ) : (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md">
+            <p className="text-sm flex items-center">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Heatmap functionality is ready to use
+            </p>
+          </div>
+        )}
         
         <Card className="p-6 space-y-4">
           <h3 className="text-xl font-medium">Test Tracking Features</h3>
