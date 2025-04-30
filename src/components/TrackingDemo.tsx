@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface TrackingDemoProps {
   heatmapLoaded?: boolean;
@@ -19,7 +20,6 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
   } | null>(null);
 
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  const [heatmapVisible, setHeatmapVisible] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
 
   const toggleTracking = () => {
@@ -48,81 +48,17 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
     });
   };
 
-  const toggleHeatmap = () => {
-    if (!window.ClickScrollScribe) {
-      toast({
-        title: "Error",
-        description: "Tracking script not yet initialized",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!heatmapLoaded) {
-      toast({
-        title: "Error",
-        description: "Heatmap library not loaded",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const newVisibility = !heatmapVisible;
-    try {
-      if (newVisibility) {
-        window.ClickScrollScribe.showHeatmap();
-        toast({
-          title: "Heatmap Visible",
-          description: "Click heatmap is now displayed",
-        });
-      } else {
-        window.ClickScrollScribe.hideHeatmap();
-        toast({
-          title: "Heatmap Hidden",
-          description: "Click heatmap is now hidden",
-        });
-      }
-      setHeatmapVisible(newVisibility);
-    } catch (error) {
-      console.error("Error toggling heatmap:", error);
-      toast({
-        title: "Error",
-        description: "Failed to toggle heatmap visibility",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const clearHeatmap = () => {
-    if (!window.ClickScrollScribe) {
-      toast({
-        title: "Error",
-        description: "Tracking script not yet initialized",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    try {
-      window.ClickScrollScribe.clearHeatmap();
-      toast({
-        title: "Heatmap Cleared",
-        description: "Click heatmap data has been reset",
-      });
-    } catch (error) {
-      console.error("Error clearing heatmap:", error);
-      toast({
-        title: "Error",
-        description: "Failed to clear heatmap data",
-        variant: "destructive"
-      });
-    }
-  };
-
   const clearTrackingData = () => {
     localStorage.removeItem("trackingData");
     setTrackingData(null);
-    clearHeatmap();
+    
+    if (window.ClickScrollScribe) {
+      try {
+        window.ClickScrollScribe.clearHeatmap();
+      } catch (error) {
+        console.error("Error clearing heatmap:", error);
+      }
+    }
     
     toast({
       title: "Data Cleared",
@@ -147,32 +83,17 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
     }
   };
 
-  // Check if heatmap is available after script initialization
+  // Check if tracking system is initialized
   useEffect(() => {
-    const checkHeatmapAvailability = () => {
-      // If we've detected script loading is complete
+    const checkAvailability = () => {
+      // If tracking script is loaded
       if (window.ClickScrollScribe && isInitializing) {
         setIsInitializing(false);
-        
-        // Verify if heatmap functionality is actually available
-        if (heatmapLoaded) {
-          try {
-            // Test heatmap functions
-            if (typeof window.ClickScrollScribe.showHeatmap === 'function' && 
-                typeof window.ClickScrollScribe.hideHeatmap === 'function') {
-              console.log("Heatmap functionality verified");
-            } else {
-              console.error("Heatmap functions missing from ClickScrollScribe object");
-            }
-          } catch (error) {
-            console.error("Error verifying heatmap functionality:", error);
-          }
-        }
       }
     };
     
     // Check every second for 10 seconds
-    const intervalId = setInterval(checkHeatmapAvailability, 1000);
+    const intervalId = setInterval(checkAvailability, 1000);
     const timeoutId = setTimeout(() => {
       clearInterval(intervalId);
       setIsInitializing(false);
@@ -182,7 +103,7 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
       clearInterval(intervalId);
       clearTimeout(timeoutId);
     };
-  }, [heatmapLoaded, isInitializing]);
+  }, [isInitializing]);
 
   useEffect(() => {
     // Check tracking status on component mount
@@ -212,14 +133,14 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
             </Button>
             
             <Button 
-              variant={heatmapVisible ? "secondary" : "outline"}
-              onClick={toggleHeatmap}
-              disabled={!heatmapLoaded || isInitializing}
+              variant="outline"
               className="whitespace-nowrap"
+              disabled={!heatmapLoaded || isInitializing}
               title={!heatmapLoaded ? "Heatmap library not loaded" : 
                     isInitializing ? "Initializing tracking system..." : ""}
+              asChild
             >
-              {heatmapVisible ? "Hide Heatmap" : "Show Heatmap"}
+              <Link to="/heatmap">View Heatmap</Link>
             </Button>
           </div>
         </div>
