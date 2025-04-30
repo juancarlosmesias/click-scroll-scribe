@@ -43,6 +43,9 @@ interface Window {
     clearHeatmap: () => void;
     heatmapInstance?: any;
   };
+  h337?: {
+    create: (config: HeatmapConfig) => HeatmapInstance;
+  };
 }
 
 // Declaración para heatmap.js global
