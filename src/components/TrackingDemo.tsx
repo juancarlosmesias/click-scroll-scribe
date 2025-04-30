@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,7 +31,6 @@ const TrackingDemo = ({ heatmapLoaded = false }: TrackingDemoProps) => {
         ? "User interactions are no longer being tracked" 
         : "Now tracking clicks, scrolls, and time on page",
       variant: window.disableTracking ? "default" : "default",
-      icon: window.disableTracking ? <AlertCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />
     });
   };
 
