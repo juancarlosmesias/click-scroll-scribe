@@ -110,10 +110,9 @@ const TrackingControls = ({
         Send data
       </Button>
 
-      {/*
       <Button
         variant="outline"
-        className="whitespace-nowrap"
+        className="bg-orange-500"
         disabled={!heatmapLoaded || isInitializing}
         title={
           !heatmapLoaded
@@ -124,17 +123,15 @@ const TrackingControls = ({
         }
         asChild
       >
-        <Link to="/heatmap">View Heatmap</Link>
+        <Link to="/heatmap">Heatmap</Link>
       </Button>
-
-      */}
 
       <Button
         variant="outline"
         className="whitespace-nowrap bg-green-500"
         asChild
       >
-        <Link to="/heatmap-data">View Heatmap</Link>
+        <Link to="/heatmap-data">Data</Link>
       </Button>
 
       <Button

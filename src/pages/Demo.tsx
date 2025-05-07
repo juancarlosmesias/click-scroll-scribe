@@ -1,6 +1,5 @@
-import { development } from "@/environments/development";
 import { useEffect } from "react";
-import { toast } from "@/components/ui/use-toast";
+import html2canvas from "html2canvas";
 
 const Demo = () => {
   useEffect(() => {
@@ -10,42 +9,14 @@ const Demo = () => {
     document.head.appendChild(script);
   }, []);
 
-  const sendData = async () => {
-    const storedData = localStorage.getItem("trackingData");
-    if (storedData) {
-      try {
-        const response = await fetch(
-          ` ${development.api_url}/heatmap/register`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: storedData,
-          }
-        );
-
-        if (!response.ok) {
-          console.log("Error");
-          toast({
-            title: "Success",
-            description: "Error",
-          });
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        await response.json();
-        toast({
-          title: "Success",
-          description: "Send correctly",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: JSON.stringify(error),
-        });
-      }
-    }
+  const captureScreen = () => {
+    const element = document.getElementById("root");
+    html2canvas(element).then((canvas) => {
+      const enlace = document.createElement("a");
+      enlace.href = canvas.toDataURL("image/png");
+      enlace.download = "captura.png";
+      enlace.click();
+    });
   };
 
   return (
@@ -109,6 +80,14 @@ const Demo = () => {
             id="nav-content"
           >
             <ul className="list-reset lg:flex justify-end flex-1 items-center">
+              <li className="mr-3">
+                <button
+                  className="bg-red-400 inline-block text-white no-underline hover:text-gray-800 hover:text-underline py-2 px-4"
+                  onClick={captureScreen}
+                >
+                  Capture screen
+                </button>
+              </li>
               <li className="mr-3">
                 <a
                   className="bg-red-400 inline-block text-white no-underline hover:text-gray-800 hover:text-underline py-2 px-4"
