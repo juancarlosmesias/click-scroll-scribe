@@ -1,51 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import TrackingDemo from "@/components/TrackingDemo";
-
-const percentClicks = [
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-
-  { x: 39.06, y: 27.5 },
-  { x: 50.0, y: 10.0 },
-  { x: 10.5, y: 80.0 },
-  { x: 39.06, y: 27.5 },
-  { x: 50.0, y: 10.0 },
-  { x: 10.5, y: 80.0 },
-
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-  { x: 100, y: 0 },
-
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-  { x: 100, y: 100 },
-];
+import { development } from "@/environments/development";
+import { extractPercentClicks } from "@/lib/heatmap";
 
 const HeatmapView = () => {
   const containerRef = useRef(null);
   const heatmapRef = useRef(null);
   const [heatmapLoaded, setHeatmapLoaded] = useState(false);
+  const [percentClicks, setPercentClicks] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Load heatmap.js
   useEffect(() => {
@@ -55,6 +18,27 @@ const HeatmapView = () => {
     script.async = true;
     script.onload = () => setHeatmapLoaded(true);
     document.head.appendChild(script);
+
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${development.api_url}/heatmap/list`);
+        if (!res.ok) throw new Error("Error fetching data");
+        const json = await res.json();
+        console.log({ json });
+        if (json.data.heatmaps.length > 0) {
+          setPercentClicks(extractPercentClicks(json.data.heatmaps[0].clicks));
+        } else {
+          setError("There is no data");
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
     return () => {
       document.head.removeChild(script);
     };
@@ -64,7 +48,7 @@ const HeatmapView = () => {
     if (!heatmapLoaded || !containerRef.current || !heatmapRef.current) return;
 
     const { width, height } = containerRef.current.getBoundingClientRect();
-    console.log({ width, height });
+
     const heatmapInstance = window.h337.create({
       container: heatmapRef.current,
       radius: 20,
@@ -80,7 +64,17 @@ const HeatmapView = () => {
     }));
 
     heatmapInstance.setData({ max: 10, data });
-  }, [heatmapLoaded]);
+  }, [heatmapLoaded, percentClicks]);
+
+  if (loading) {
+    return <div className="text-center py-10 text-gray-500">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10 text-gray-500">Error: {error}</div>
+    );
+  }
 
   return (
     <div className="relative w-screen h-screen flex justify-center items-center overflow-hidden">

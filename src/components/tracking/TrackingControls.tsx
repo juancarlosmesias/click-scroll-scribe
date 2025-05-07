@@ -56,6 +56,7 @@ const TrackingControls = ({
 
   const sendData = async () => {
     const storedData = localStorage.getItem("trackingData");
+    console.log({ storedData });
     if (storedData) {
       try {
         const response = await fetch(
