@@ -142,7 +142,7 @@ const TrackingControls = ({
         className="whitespace-nowrap bg-blue-600"
         asChild
       >
-        <Link to="/">Go demo</Link>
+        <Link to="/demo">Go demo</Link>
       </Button>
     </div>
   );
