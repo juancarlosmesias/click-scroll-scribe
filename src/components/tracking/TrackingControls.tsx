@@ -125,6 +125,10 @@ const TrackingControls = ({
       >
         <Link to="/heatmap">View Heatmap</Link>
       </Button>
+
+      <Button variant="outline" className="whitespace-nowrap" asChild>
+        <Link to="/heatmap-data">View Heatmap Data</Link>
+      </Button>
     </div>
   );
 };

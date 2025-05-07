@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import HeatmapView from "./pages/HeatmapView";
 import NotFound from "./pages/NotFound";
+import HeatmapViewData from "./pages/HeatmapViewData";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/heatmap" element={<HeatmapView />} />
+          <Route path="/heatmap-data" element={<HeatmapViewData />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
