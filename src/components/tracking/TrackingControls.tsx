@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
+import { development } from "@/environments/development";
 
 interface TrackingControlsProps {
   trackingEnabled: boolean;
@@ -53,6 +54,44 @@ const TrackingControls = ({
     });
   };
 
+  const sendData = async () => {
+    const storedData = localStorage.getItem("trackingData");
+    if (storedData) {
+      try {
+        const response = await fetch(
+          ` ${development.api_url}/heatmap/register`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: storedData,
+          }
+        );
+
+        if (!response.ok) {
+          console.log("Error");
+          toast({
+            title: "Success",
+            description: "Error",
+          });
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        await response.json();
+        toast({
+          title: "Success",
+          description: "Send correctly",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: JSON.stringify(error),
+        });
+      }
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button
@@ -65,6 +104,10 @@ const TrackingControls = ({
 
       <Button onClick={captureScreen} className="whitespace-nowrap">
         Capture screen
+      </Button>
+
+      <Button onClick={sendData} className="whitespace-nowrap">
+        Send data
       </Button>
 
       <Button

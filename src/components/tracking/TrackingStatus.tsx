@@ -1,4 +1,3 @@
-
 import { AlertCircle, CheckCircle } from "lucide-react";
 
 interface TrackingStatusProps {
@@ -6,7 +5,10 @@ interface TrackingStatusProps {
   heatmapLoaded: boolean;
 }
 
-const TrackingStatus = ({ isInitializing, heatmapLoaded }: TrackingStatusProps) => {
+const TrackingStatus = ({
+  isInitializing,
+  heatmapLoaded,
+}: TrackingStatusProps) => {
   if (isInitializing) {
     return (
       <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-2 rounded-md">
@@ -17,7 +19,7 @@ const TrackingStatus = ({ isInitializing, heatmapLoaded }: TrackingStatusProps) 
       </div>
     );
   }
-  
+
   if (!heatmapLoaded) {
     return (
       <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-md">
@@ -28,7 +30,7 @@ const TrackingStatus = ({ isInitializing, heatmapLoaded }: TrackingStatusProps) 
       </div>
     );
   }
-  
+
   return (
     <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-2 rounded-md">
       <p className="text-sm flex items-center">
