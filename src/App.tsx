@@ -8,6 +8,7 @@ import HeatmapView from "./pages/HeatmapView";
 import NotFound from "./pages/NotFound";
 import HeatmapViewData from "./pages/HeatmapViewData";
 import Demo from "./pages/Demo";
+import Test from "./pages/Test";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,8 @@ const App = () => (
           <Route path="/controls" element={<Index />} />
           <Route path="/heatmap" element={<HeatmapView />} />
           <Route path="/heatmap-data" element={<HeatmapViewData />} />
+          <Route path="/test" element={<Test />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

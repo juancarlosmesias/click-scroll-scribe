@@ -77,6 +77,11 @@ const HeatmapView = () => {
     heatmapInstance.setData({ max: 10, data });
   }, [heatmapLoaded, imageLoaded, percentClicks]);
 
+  const [scale, setScale] = useState(1);
+
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.1, 3));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.5));
+
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading...</div>;
   }
@@ -88,8 +93,26 @@ const HeatmapView = () => {
   }
 
   return (
-    <div className="relative w-screen h-screen flex justify-center items-center overflow-hidden">
-      <div className="h-screen w-[50%] relative" ref={containerRef}>
+    <div className="relative w-screen h-screen flex justify-center items-center">
+      <div className="mb-4 space-x-2 absolute top-4 right-4">
+        <button
+          onClick={zoomIn}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Zoom In
+        </button>
+        <button
+          onClick={zoomOut}
+          className="px-4 py-2 bg-blue-500 text-white rounded"
+        >
+          Zoom Out
+        </button>
+      </div>
+      <div
+        className="h-screen w-[50%] relative transition-transform duration-300 origin-top"
+        ref={containerRef}
+        style={{ transform: `scale(${scale})` }}
+      >
         <img
           src="/heatmap-capture.png"
           alt="Heatmap Background"
