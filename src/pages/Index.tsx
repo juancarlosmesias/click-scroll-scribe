@@ -1,106 +1,58 @@
 import { useEffect, useState } from "react";
-import TrackingDemo from "@/components/TrackingDemo";
-import { toast } from "@/components/ui/use-toast";
+import TrackingDataDisplay from "@/components/tracking/TrackingDataDisplay";
+import TrackingControls from "@/components/tracking/TrackingControls";
+import TrackingStatus from "@/components/tracking/TrackingStatus";
 
 const Index = () => {
-  // const [heatmapLoaded, setHeatmapLoaded] = useState(false);
-  // const [heatmapAttempts, setHeatmapAttempts] = useState(0);
+  const [trackingData, setTrackingData] = useState<{
+    clicks: any[];
+    scrolls: any[];
+    timeOnPage: any[];
+  } | null>(null);
 
-  // useEffect(() => {
-  //   // Function to load heatmap.js with retry logic
-  //   const loadHeatmapScript = () => {
-  //     console.log(
-  //       `Attempting to load heatmap.js (attempt ${heatmapAttempts + 1})`
-  //     );
-
-  //     // Create script element for heatmap.js
-  //     const heatmapScript = document.createElement("script");
-  //     heatmapScript.src =
-  //       "https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.0/heatmap.min.js";
-  //     heatmapScript.async = true;
-
-  //     // Handle successful load
-  //     heatmapScript.onload = () => {
-  //       console.log("Heatmap.js loaded successfully");
-  //       setHeatmapLoaded(true);
-
-  //       // Now load our tracking script that depends on heatmap.js
-  //       const trackingScript = document.createElement("script");
-  //       trackingScript.src = "/tracking-script.js";
-  //       trackingScript.async = true;
-  //       document.head.appendChild(trackingScript);
-
-  //       trackingScript.onload = () => {
-  //         console.log("Tracking script loaded successfully");
-  //         toast({
-  //           title: "Tracking Ready",
-  //           description: "Tracking and heatmap functionality is now available",
-  //         });
-  //       };
-
-  //       trackingScript.onerror = () => {
-  //         console.error("Error loading tracking script");
-  //         toast({
-  //           title: "Error",
-  //           description: "Failed to load tracking script",
-  //           variant: "destructive",
-  //         });
-  //       };
-  //     };
-
-  //     // Handle load error with retry logic (up to 3 attempts)
-  //     heatmapScript.onerror = () => {
-  //       console.error(
-  //         `Error loading heatmap.js (attempt ${heatmapAttempts + 1})`
-  //       );
-
-  //       if (heatmapAttempts < 2) {
-  //         // Allow up to 3 attempts (0, 1, 2)
-  //         setHeatmapAttempts((prev) => prev + 1);
-  //         // Wait before retrying
-  //         setTimeout(() => {
-  //           if (document.head.contains(heatmapScript)) {
-  //             document.head.removeChild(heatmapScript);
-  //           }
-  //           loadHeatmapScript();
-  //         }, 1500);
-  //       } else {
-  //         // Final failure after retry attempts
-  //         toast({
-  //           title: "Error",
-  //           description:
-  //             "Failed to load heatmap.js library after multiple attempts",
-  //           variant: "destructive",
-  //         });
-
-  //         // Still load tracking script but without heatmap functionality
-  //         const trackingScript = document.createElement("script");
-  //         trackingScript.src = "/tracking-script.js";
-  //         trackingScript.async = true;
-  //         document.head.appendChild(trackingScript);
-
-  //         // Mark as not loaded
-  //         setHeatmapLoaded(false);
-  //       }
-  //     };
-
-  //     // Append the script to head
-  //     document.head.appendChild(heatmapScript);
-  //   };
-
-  // Start loading process
-  // loadHeatmapScript();
-
-  // Cleanup function
+  const [trackingEnabled, setTrackingEnabled] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    // Load our tracking script dynamically
-    const script = document.createElement("script");
-    script.src = "/tracking-script.js";
-    script.async = true;
-    document.head.appendChild(script);
-  }, []);
+    const checkAvailability = () => {
+      // If tracking script is loaded
+      if (window.ClickScrollScribe && isInitializing) {
+        setIsInitializing(false);
+      }
+    };
 
+    // Check every second for 10 seconds
+    const intervalId = setInterval(checkAvailability, 1000);
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+      setIsInitializing(false);
+    }, 10000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [isInitializing]);
+
+  useEffect(() => {
+    // Check tracking status on component mount
+    setTrackingEnabled(!window.disableTracking);
+
+    // Load initial data
+    const loadTrackingData = () => {
+      const data = localStorage.getItem("trackingData");
+      if (data) {
+        setTrackingData(JSON.parse(data));
+      }
+    };
+
+    loadTrackingData();
+
+    // Set up interval to refresh data
+    const intervalId = setInterval(loadTrackingData, 2000);
+
+    return () => clearInterval(intervalId);
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <header className="bg-white shadow-sm">
@@ -114,9 +66,37 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      {/* <main className="container mx-auto px-4 py-8">
         <TrackingDemo heatmapLoaded={false} />
-      </main>
+      </main> */}
+
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <div className="flex justify-between items-center flex-wrap gap-2">
+            <h2 className="text-2xl font-semibold">Interactive Demo</h2>
+            <TrackingControls
+              trackingEnabled={trackingEnabled}
+              setTrackingEnabled={setTrackingEnabled}
+              heatmapLoaded={false}
+              isInitializing={isInitializing}
+            />
+          </div>
+
+          <TrackingStatus
+            isInitializing={isInitializing}
+            heatmapLoaded={false}
+          />
+
+          {/* <Card className="p-6 space-y-4">
+            <TrackingTestArea />
+          </Card> */}
+        </section>
+
+        <TrackingDataDisplay
+          trackingData={trackingData}
+          setTrackingData={setTrackingData}
+        />
+      </div>
 
       <footer className="bg-white border-t mt-20">
         <div className="container mx-auto px-4 py-6 text-center text-gray-600">

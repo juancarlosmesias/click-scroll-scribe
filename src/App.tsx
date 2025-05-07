@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import HeatmapView from "./pages/HeatmapView";
 import NotFound from "./pages/NotFound";
 import HeatmapViewData from "./pages/HeatmapViewData";
+import Demo from "./pages/Demo";
 
 const queryClient = new QueryClient();
 
@@ -17,10 +18,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Demo />} />
+          <Route path="/controls" element={<Index />} />
           <Route path="/heatmap" element={<HeatmapView />} />
           <Route path="/heatmap-data" element={<HeatmapViewData />} />
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

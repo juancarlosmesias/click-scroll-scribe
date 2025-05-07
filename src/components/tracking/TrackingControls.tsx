@@ -102,14 +102,15 @@ const TrackingControls = ({
         {trackingEnabled ? "Disable Tracking" : "Enable Tracking"}
       </Button>
 
-      <Button onClick={captureScreen} className="whitespace-nowrap">
+      {/* <Button onClick={captureScreen} className="whitespace-nowrap">
         Capture screen
-      </Button>
+      </Button> */}
 
       <Button onClick={sendData} className="whitespace-nowrap">
         Send data
       </Button>
 
+      {/*
       <Button
         variant="outline"
         className="whitespace-nowrap"
@@ -126,8 +127,22 @@ const TrackingControls = ({
         <Link to="/heatmap">View Heatmap</Link>
       </Button>
 
-      <Button variant="outline" className="whitespace-nowrap" asChild>
-        <Link to="/heatmap-data">View Heatmap Data</Link>
+      */}
+
+      <Button
+        variant="outline"
+        className="whitespace-nowrap bg-green-500"
+        asChild
+      >
+        <Link to="/heatmap-data">View Heatmap</Link>
+      </Button>
+
+      <Button
+        variant="outline"
+        className="whitespace-nowrap bg-blue-600"
+        asChild
+      >
+        <Link to="/">Go demo</Link>
       </Button>
     </div>
   );
