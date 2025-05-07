@@ -183,8 +183,11 @@
         const elementInfo = getElementInfo(target);
 
         // Obtener el percente of clicks
-        const xPercent = (event.clientX / window.innerWidth) * 100;
-        const yPercent = (event.clientY / window.innerHeight) * 100;
+
+        const totalHeight =
+          document.documentElement.scrollHeight || window.innerHeight;
+        const xPercent = (event.pageX / window.innerWidth) * 100;
+        const yPercent = (event.pageY / totalHeight) * 100;
 
         // Registrar datos del clic
         const clickData = {

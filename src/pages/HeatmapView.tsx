@@ -5,10 +5,13 @@ import { extractPercentClicks } from "@/lib/heatmap";
 const HeatmapView = () => {
   const containerRef = useRef(null);
   const heatmapRef = useRef(null);
+  const imagepRef = useRef(null);
+
   const [heatmapLoaded, setHeatmapLoaded] = useState(false);
   const [percentClicks, setPercentClicks] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Load heatmap.js
   useEffect(() => {
@@ -45,9 +48,17 @@ const HeatmapView = () => {
   }, []);
 
   useEffect(() => {
-    if (!heatmapLoaded || !containerRef.current || !heatmapRef.current) return;
+    if (
+      !heatmapLoaded ||
+      !imageLoaded ||
+      !containerRef.current ||
+      !heatmapRef.current ||
+      !percentClicks
+    )
+      return;
 
-    const { width, height } = containerRef.current.getBoundingClientRect();
+    const { width, height } = imagepRef.current.getBoundingClientRect();
+    console.log({ width, height });
 
     const heatmapInstance = window.h337.create({
       container: heatmapRef.current,
@@ -64,7 +75,7 @@ const HeatmapView = () => {
     }));
 
     heatmapInstance.setData({ max: 10, data });
-  }, [heatmapLoaded, percentClicks]);
+  }, [heatmapLoaded, imageLoaded, percentClicks]);
 
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading...</div>;
@@ -78,14 +89,12 @@ const HeatmapView = () => {
 
   return (
     <div className="relative w-screen h-screen flex justify-center items-center overflow-hidden">
-      <div
-        className="h-screen w-[50%] relative"
-        // ref={containerRef}
-      >
+      <div className="h-screen w-[50%] relative" ref={containerRef}>
         <img
           src="/heatmap-capture.png"
           alt="Heatmap Background"
-          ref={containerRef}
+          onLoad={() => setImageLoaded(true)}
+          ref={imagepRef}
           className="absolute inset-0 w-auto h-full object-contain z-0"
         />
         <div
