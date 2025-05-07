@@ -80,14 +80,14 @@ const Demo = () => {
             id="nav-content"
           >
             <ul className="list-reset lg:flex justify-end flex-1 items-center">
-              <li className="mr-3">
+              {/* <li className="mr-3">
                 <button
                   className="bg-red-400 inline-block text-white no-underline hover:text-gray-800 hover:text-underline py-2 px-4"
                   onClick={captureScreen}
                 >
                   Capture screen
                 </button>
-              </li>
+              </li> */}
               <li className="mr-3">
                 <a
                   className="bg-red-400 inline-block text-white no-underline hover:text-gray-800 hover:text-underline py-2 px-4"
