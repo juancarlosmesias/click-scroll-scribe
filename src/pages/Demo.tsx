@@ -1,23 +1,31 @@
 import { useEffect } from "react";
-import html2canvas from "html2canvas";
+// import html2canvas from "html2canvas";
 
 const Demo = () => {
+  // const captureScreen = () => {
+  //   const element = document.getElementById("root");
+  //   html2canvas(element).then((canvas) => {
+  //     const enlace = document.createElement("a");
+  //     enlace.href = canvas.toDataURL("image/png");
+  //     enlace.download = "captura.png";
+  //     enlace.click();
+  //   });
+  // };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "/tracking-script.js";
     script.async = true;
     document.head.appendChild(script);
-  }, []);
+    const enableTracking = () => {
+      if (!window.ClickScrollScribe) {
+        return;
+      }
+      window.ClickScrollScribe.enableTracking();
+    };
 
-  const captureScreen = () => {
-    const element = document.getElementById("root");
-    html2canvas(element).then((canvas) => {
-      const enlace = document.createElement("a");
-      enlace.href = canvas.toDataURL("image/png");
-      enlace.download = "captura.png";
-      enlace.click();
-    });
-  };
+    enableTracking();
+  }, []);
 
   return (
     <div className="min-h-screen gradient">

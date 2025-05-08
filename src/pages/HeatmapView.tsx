@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { development } from "@/environments/development";
 import { extractPercentClicks } from "@/lib/heatmap";
+import { toast } from "@/hooks/use-toast";
 
 const HeatmapView = () => {
   const containerRef = useRef(null);
@@ -14,6 +15,24 @@ const HeatmapView = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Load heatmap.js
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch(`${development.api_url}/heatmap/list`);
+      if (!res.ok) throw new Error("Error fetching data");
+      const json = await res.json();
+      if (json.data.heatmaps.length > 0) {
+        setPercentClicks(extractPercentClicks(json.data.heatmaps[0].clicks));
+      } else {
+        setError("There is no data");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const script = document.createElement("script");
     script.src =
@@ -22,25 +41,15 @@ const HeatmapView = () => {
     script.onload = () => setHeatmapLoaded(true);
     document.head.appendChild(script);
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${development.api_url}/heatmap/list`);
-        if (!res.ok) throw new Error("Error fetching data");
-        const json = await res.json();
-        console.log({ json });
-        if (json.data.heatmaps.length > 0) {
-          setPercentClicks(extractPercentClicks(json.data.heatmaps[0].clicks));
-        } else {
-          setError("There is no data");
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+    const stopTracking = () => {
+      if (!window.ClickScrollScribe) {
+        return;
       }
+      window.ClickScrollScribe.disableTracking();
     };
 
     fetchData();
+    stopTracking();
 
     return () => {
       document.head.removeChild(script);
@@ -58,7 +67,6 @@ const HeatmapView = () => {
       return;
 
     const { width, height } = imagepRef.current.getBoundingClientRect();
-    console.log({ width, height });
 
     const heatmapInstance = window.h337.create({
       container: heatmapRef.current,
@@ -79,8 +87,9 @@ const HeatmapView = () => {
 
   const [scale, setScale] = useState(1);
 
-  const zoomIn = () => setScale((prev) => Math.min(prev + 0.1, 3));
-  const zoomOut = () => setScale((prev) => Math.max(prev - 0.1, 0.5));
+  const zoomIn = () => setScale((prev) => Math.min(prev + 0.1, 10));
+  const zoomOut = () => setScale((prev) => Math.max(prev - 0.1, 1));
+  const handleRefresh = () => window.location.reload();
 
   if (loading) {
     return <div className="text-center py-10 text-gray-500">Loading...</div>;
@@ -106,6 +115,12 @@ const HeatmapView = () => {
           className="px-4 py-2 bg-blue-500 text-white rounded"
         >
           Zoom Out
+        </button>
+        <button
+          onClick={handleRefresh}
+          className="px-4 py-2 bg-red-400 text-white rounded"
+        >
+          Refresh
         </button>
       </div>
       <div

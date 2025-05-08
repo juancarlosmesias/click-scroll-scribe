@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import TrackingDataDisplay from "@/components/tracking/TrackingDataDisplay";
 import TrackingControls from "@/components/tracking/TrackingControls";
 import TrackingStatus from "@/components/tracking/TrackingStatus";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [trackingData, setTrackingData] = useState<{
@@ -12,6 +13,27 @@ const Index = () => {
 
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const stopTracking = () => {
+      if (!window.ClickScrollScribe) {
+        toast({
+          title: "Error",
+          description: "Tracking script not yet initialized",
+          variant: "destructive",
+        });
+        return;
+      }
+      window.ClickScrollScribe.disableTracking();
+
+      toast({
+        title: "Tracking Disabled",
+        description: "Now tracking clicks, scrolls, and time on page",
+      });
+    };
+
+    stopTracking();
+  }, []);
 
   useEffect(() => {
     const checkAvailability = () => {

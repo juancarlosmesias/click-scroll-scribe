@@ -29,8 +29,10 @@
   const CONFIG = {
     debounceTime: 200, // Tiempo para debouncing de clics (ms)
     batchInterval: 5000, // Intervalo para enviar datos agrupados (ms)
-    apiEndpoint: "/api/track", // Endpoint de API ficticia
-    scrollMilestones: [25, 50, 75, 100], // Hitos de scroll
+    // apiEndpoint: "http://localhost:3001/api/v1/heatmap/register", // Endpoint local
+    apiEndpoint:
+      "https://heatmap-api-kqm7.onrender.com/api/v1/heatmap/register", // Endpoint remote
+    scrollMilestones: [25, 50, 75, 100],
   };
 
   // Referencia al heatmap
@@ -124,19 +126,28 @@
     const dataToSend = JSON.parse(JSON.stringify(trackingData));
 
     // Intentar enviar los datos a la API
+    // fetch(CONFIG.apiEndpoint, {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({
+    //     data: dataToSend,
+    //     pageUrl: window.location.href,
+    //     userAgent: navigator.userAgent,
+    //     timestamp: new Date().toISOString(),
+    //   }),
+    //   // Usar keepalive para asegurar que la solicitud se complete
+    //   // incluso si la página se está descargando
+    //   keepalive: true,
+    // })
+
     fetch(CONFIG.apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        data: dataToSend,
-        pageUrl: window.location.href,
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString(),
-      }),
-      // Usar keepalive para asegurar que la solicitud se complete
-      // incluso si la página se está descargando
+      body: JSON.stringify(dataToSend),
       keepalive: true,
     })
       .then((response) => {
@@ -183,7 +194,6 @@
         const elementInfo = getElementInfo(target);
 
         // Obtener el percente of clicks
-
         const totalHeight =
           document.documentElement.scrollHeight || window.innerHeight;
         const xPercent = (event.pageX / window.innerWidth) * 100;

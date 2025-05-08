@@ -44,55 +44,6 @@ const TrackingControls = ({
     });
   };
 
-  const captureScreen = () => {
-    const element = document.getElementById("root");
-    html2canvas(element).then((canvas) => {
-      const enlace = document.createElement("a");
-      enlace.href = canvas.toDataURL("image/png");
-      enlace.download = "captura.png";
-      enlace.click();
-    });
-  };
-
-  const sendData = async () => {
-    const storedData = localStorage.getItem("trackingData");
-    console.log({ storedData });
-    if (storedData) {
-      try {
-        const response = await fetch(
-          ` ${development.api_url}/heatmap/register`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: storedData,
-          }
-        );
-
-        if (!response.ok) {
-          console.log("Error");
-          toast({
-            title: "Success",
-            description: "Error",
-          });
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        await response.json();
-        toast({
-          title: "Success",
-          description: "Send correctly",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: JSON.stringify(error),
-        });
-      }
-    }
-  };
-
   return (
     <div className="flex flex-wrap gap-2">
       <Button
@@ -107,9 +58,9 @@ const TrackingControls = ({
         Capture screen
       </Button> */}
 
-      <Button onClick={sendData} className="whitespace-nowrap">
+      {/* <Button onClick={sendData} className="whitespace-nowrap">
         Send data
-      </Button>
+      </Button> */}
 
       <Button
         variant="outline"
