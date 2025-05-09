@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
-import html2canvas from "html2canvas";
-import { development } from "@/environments/development";
 
 interface TrackingControlsProps {
   trackingEnabled: boolean;
@@ -45,21 +43,13 @@ const TrackingControls = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button
+    <div className="flex items-center justify-center p-10 gap-2">
+      {/* <Button
         variant={trackingEnabled ? "destructive" : "default"}
         onClick={toggleTracking}
         className="whitespace-nowrap"
       >
         {trackingEnabled ? "Disable Tracking" : "Enable Tracking"}
-      </Button>
-
-      {/* <Button onClick={captureScreen} className="whitespace-nowrap">
-        Capture screen
-      </Button> */}
-
-      {/* <Button onClick={sendData} className="whitespace-nowrap">
-        Send data
       </Button> */}
 
       <Button
@@ -78,21 +68,21 @@ const TrackingControls = ({
         <Link to="/heatmap">Heatmap</Link>
       </Button>
 
-      <Button
+      {/* <Button
         variant="outline"
         className="whitespace-nowrap bg-green-500"
         asChild
       >
         <Link to="/heatmap-data">Data</Link>
-      </Button>
+      </Button> */}
 
-      <Button
+      {/* <Button
         variant="outline"
         className="whitespace-nowrap bg-blue-600"
         asChild
       >
         <Link to="/demo">Go demo</Link>
-      </Button>
+      </Button> */}
     </div>
   );
 };

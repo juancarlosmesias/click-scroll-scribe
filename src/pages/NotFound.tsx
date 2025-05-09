@@ -14,8 +14,11 @@ const NotFound = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">
-        <a href="/demo" className="text-blue-500 hover:text-blue-700 underline">
-          Go to demo
+        <a
+          href="/controls"
+          className="text-blue-500 hover:text-blue-700 underline"
+        >
+          Go Dashboard
         </a>
       </div>
     </div>
